@@ -103,3 +103,5 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+data_files/sm_top_beers.csv
+data_files/top_beers.csv
