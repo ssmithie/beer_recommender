@@ -29,12 +29,17 @@ def run_the_data():
 
     @st.cache
     def load_full_data():
-        data = pd.read_csv('data_files/top_beers.csv', index_col=0)
+        data = pd.read_csv('data_files/top_top_beers.csv', index_col=0)
         return data
 
     sm_df_full = load_full_data()
 
     st.write(sm_df_full.sample(10))
+
+    st.pyplot(sm_df_full['avg_score'])
+
+    st.write("Here is a visualization of the 12 topics in the beer reviews:")
+    st.image(['images/topic_0.png','images/topic_1.png','images/topic_2.png','images/topic_3.png','images/topic_4.png','images/topic_5.png','images/topic_6.png','images/topic_7.png','images/topic_8.png','images/topic_9.png','images/topic_10.png','images/topic_11.png'])
 
 
 
@@ -48,7 +53,7 @@ def run_the_app():
     
     @st.cache
     def load_full_df():
-        data = pd.read_csv('data_files/top_beers.csv', index_col=0)
+        data = pd.read_csv('data_files/top_top_beers.csv', index_col=0)
         return data
 
     with st.spinner("Canning the beer..."):
@@ -62,8 +67,24 @@ def run_the_app():
     #if filter_by == 'Yes':
     #    beer_location = st.selectbox('Choose a location:', sm_df_full['location'].unique()) 
 
-    desired_beer = st.selectbox('Choose a beer:', sm_df_full['name'].unique().tolist())
-    st.write(sm_df_full[sm_df_full.name == desired_beer])
+    
+    #textinput:
+    #desired_beer = st.text_input("Type a beer in here","Bourbon County Brand Stout")
+    #if st.button("Lets Go!"):
+       # desired_beer = desired_beer
+    
+    chosen_brewery = st.selectbox('Choose a brewery:', sm_df_full['brewery'].unique().tolist())
+    
+    #dropdown:
+    desired_beer = st.selectbox('Choose a beer:', sm_df_full.loc[sm_df_full['brewery'] == chosen_brewery]['name'].unique().tolist())
+    
+    beer_df = sm_df_full[sm_df_full.name == desired_beer]
+
+    topic = int(beer_df[beer_df.brewery == chosen_brewery]['Dominant_Topic'].values[0])
+    st.write("Here is a look at the dominant words used to describe your choosen beer:")
+    st.image(f'images/topic_{topic}.png')
+    st.write(f'Style: {sm_df_full[sm_df_full.name == desired_beer]["style"].values[0]}')
+    st.write(beer_df[beer_df.brewery == chosen_brewery])
 
     filter_by = st.radio('Do you want to filter by location?', ['No', 'Yes'])
     if filter_by == 'Yes':
