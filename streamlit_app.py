@@ -5,8 +5,11 @@ import numpy as np
 from PIL import Image
 import requests
 from io import BytesIO
-import math
-
+import plotly.figure_factory as ff
+import plotly.express as px
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import seaborn as sns
 
 def main():
     st.title("Hello Beer World")
@@ -28,15 +31,38 @@ def run_the_data():
     st.subheader('The data at a glance')
 
     @st.cache
-    def load_full_data():
-        data = pd.read_csv('data_files/top_top_beers.csv', index_col=0)
+    def load_full_data(desti):
+        data = pd.read_csv(desti, index_col=0)
         return data
 
-    sm_df_full = load_full_data()
+    sm_df_full = load_full_data('data_files/top_top_beers.csv')
+    stats_df = load_full_data('data_files/stats_df.csv')
 
     st.write(sm_df_full.sample(10))
+    
+    plt.style.use('seaborn')
 
-    st.pyplot(sm_df_full['avg_score'])
+    st.subheader("A look at the distribution of average score")
+    display = st.checkbox("Show the rating distribution")
+    if display:
+        plt.figure()
+        plt.hist(stats_df['avg_score'], bins=18, color='indigo')
+        plt.title("Distribution of User Ratings")
+        st.pyplot()
+
+    pl_display = st.checkbox("Show where the breweries are")
+    if pl_display:
+        labels = ['US', 'Canada', 'England', 'Germany', 'Belgium', 'Australia', 'Spain', 'RestOfWorld']
+        values = [77616, (2235+1734+1578), 4458, 2652, 1881, 1141, 1015, (109508 - (77616+2235+1734+1578+4458+2652+1881+1141+1015))]
+        fig = go.Figure(data=[go.Pie(labels=labels, values=values)])
+        st.plotly_chart(fig)
+
+    hist_data = [stats_df['avg_score'], stats_df['taste_avg'].dropna() , stats_df['look_avg'].dropna(), stats_df['smell_avg'].dropna(), stats_df['feel_avg'].dropna()]
+    groups = ['Overall', 'Taste', 'Look', 'Smell', 'Feel']
+
+    #fig = ff.create_distplot(hist_data, groups, bin_size=[20, 15, 15, 15, 15])
+    
+    #st.plotly_chart(fig)
 
     st.write("Here is a visualization of the 12 topics in the beer reviews:")
     st.image(['images/topic_0.png','images/topic_1.png','images/topic_2.png','images/topic_3.png','images/topic_4.png','images/topic_5.png','images/topic_6.png','images/topic_7.png','images/topic_8.png','images/topic_9.png','images/topic_10.png','images/topic_11.png'])
