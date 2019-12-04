@@ -17,13 +17,13 @@ def main():
     st.markdown("Welcome to my beer recommender - simply choose a beer you know you like, and it will give you 3 others that you will enjoy!")
     
     st.sidebar.title("What do you want to do?")
-    app_mode = st.sidebar.selectbox("Choose the mode", ["Look at the data!", "Run the app"])
+    app_mode = st.sidebar.selectbox("Choose the mode", ["Look at the data", "Find Your Beer's Peer"])
 
-    if app_mode == "Look at the data!":
+    if app_mode == "Look at the data":
         with st.spinner('Gathering the data...'):
             run_the_data()
 
-    elif app_mode == "Run the app":
+    elif app_mode == "Find Your Beer's Peer":
         with st.spinner("Fermenting the beers..."):
             run_the_app()
 
@@ -127,15 +127,12 @@ def run_the_app():
     st.write("Here is a look at the dominant words used to describe your choosen beer:")
     st.image(f'images/topic_{topic}.png')
     st.write(f'Style: {sm_df_full[sm_df_full.name == desired_beer]["style"].values[0]}')
-    st.write(beer_df[beer_df.brewery == chosen_brewery])
+    #if I want to show the df for the beer, uncomment this:
+    #st.write(beer_df[beer_df.brewery == chosen_brewery])
 
     filter_by = st.radio('Do you want to filter by location?', ['No', 'Yes'])
     if filter_by == 'Yes':
         beer_location = st.selectbox('Choose a location:', sm_df_full['location'].unique())
-
-#st.subheader("This is a different option")
-
-#chosen_beer = st.text_input("Tell me a beer:", 'your beer here')
 
     @st.cache
     def load_matrix():
@@ -204,11 +201,12 @@ def run_the_app():
                 st.write(f"Rating: {recommended_beers[i]['Rating']}")
                 st.write(f"ABV: {recommended_beers[i]['abv']}")
                 st.write(f"Availability: {recommended_beers[i]['avail']}")
-                st.markdown(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
+                st.write(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
             
             #return recommended_beers[:3]
     
         elif filter_by == 'Yes':
+
             for i in top_20_indexes:
                 rec_beer_dict = {}
                 full_ind = sm_df_full.index[sm_df_full['name'] == list(sm_df.index)[i]].tolist()[0]
@@ -217,11 +215,25 @@ def run_the_app():
                 rec_beer_dict['Location'] = sm_df_full.loc[full_ind]['location']
                 rec_beer_dict['Rating'] = sm_df_full.loc[full_ind]['avg_score']
                 rec_beer_dict['url'] = sm_df_full.loc[full_ind]['url']
+                rec_beer_dict['abv'] = sm_df_full.loc[full_ind]['abv']
+                rec_beer_dict['avail'] = sm_df_full.loc[full_ind]['avail']
                 rec_beer_dict['Image'] = sm_df_full.loc[full_ind]['img']
                 if sm_df_full.loc[full_ind]['location'] == location:
                     recommended_beers.append(rec_beer_dict)
     
-            if len(recommended_beers) >= 1:
+            if len(recommended_beers) > 3:
+                for i in range(0,3):
+                    st.write(i+1)
+                    img_url = recommended_beers[i]['Image']
+                    load_image(img_url)
+                    st.write(f"{recommended_beers[i]['Beer']} from {recommended_beers[i]['Brewery']} in {recommended_beers[i]['Location']}")
+                    st.write("The stats:")
+                    st.write(f"Rating: {recommended_beers[i]['Rating']}")
+                    st.write(f"ABV: {recommended_beers[i]['abv']}")
+                    st.write(f"Availability: {recommended_beers[i]['avail']}")
+                    st.write(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
+            
+            elif len(recommended_beers) >= 1:
                 for i in range(len(recommended_beers)):
                     st.write(i+1)
                     img_url = recommended_beers[i]['Image']
@@ -231,11 +243,17 @@ def run_the_app():
                     st.write(f"Rating: {recommended_beers[i]['Rating']}")
                     st.write(f"ABV: {recommended_beers[i]['abv']}")
                     st.write(f"Availability: {recommended_beers[i]['avail']}")
-                    st.markdown(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
-            else:
-                st.write("Sorry, there are no similar high rated beers in that country")
+                    st.write(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
 
-    st.write(full_recommendations())
+            
+            else:
+                st.write("Sorry, there are no similar high rated beers in that location.")
+
+    if st.button("Beer Me!"):
+        st.write(full_recommendations())
+    else:
+        st.image("images/beer_meme.jpeg")
+    
 
 if __name__ == "__main__":
     main()
