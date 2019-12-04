@@ -10,6 +10,7 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import seaborn as sns
+import pyLDAvis.gensim
 
 def main():
     st.title("Hello Beer World")
@@ -38,17 +39,34 @@ def run_the_data():
     sm_df_full = load_full_data('data_files/top_top_beers.csv')
     stats_df = load_full_data('data_files/stats_df.csv')
 
-    st.write(sm_df_full.sample(10))
+    st.dataframe(sm_df_full.sample(10))
+
     
     plt.style.use('seaborn')
 
-    st.subheader("A look at the distribution of average score")
-    display = st.checkbox("Show the rating distribution")
+    st.subheader("Here are some visualisations of the data:")
+    display = st.checkbox("Show the rating distributions")
     if display:
-        plt.figure()
-        plt.hist(stats_df['avg_score'], bins=18, color='indigo')
-        plt.title("Distribution of User Ratings")
-        st.pyplot()
+        fig = go.Figure()
+        fig.add_trace(go.Histogram(x=stats_df['avg_score'], name='Overall Distribution'))
+        fig.add_trace(go.Histogram(x=stats_df.loc[stats_df['style'] == 'New England IPA']['avg_score'], name='New England IPA'))
+        fig.add_trace(go.Histogram(x=stats_df.loc[stats_df['style'] == 'American Light Lager']['avg_score'],name='American Light Lager'))
+        fig.add_trace(go.Histogram(x=stats_df.loc[stats_df['style'] == 'American Stout']['avg_score'], name='American Stout'))
+        fig.add_trace(go.Histogram(x=stats_df.loc[stats_df['style'] == 'Bohemian Pilsener']['avg_score'], name='Bohemian Pilsener'))
+        fig.add_trace(go.Histogram(x=stats_df.loc[stats_df['style'] == 'Russian Imperial Stout']['avg_score'],name='Russian Imperial Stout'))
+        fig.add_trace(go.Histogram(x=stats_df.loc[stats_df['style'] == 'Belgian Saison']['avg_score'], name='Belgian Saison'))
+
+        # Overlay both histograms
+        fig.update_layout(title='Distribution of User Ratings', barmode='overlay')
+        # Reduce opacity to see both histograms
+        fig.update_traces(opacity=0.7)
+        st.plotly_chart(fig)
+
+
+        #plt.figure()
+        #plt.hist(stats_df['avg_score'], bins=18, color='indigo')
+        #plt.title("Distribution of User Ratings")
+        #st.pyplot()
 
     pl_display = st.checkbox("Show where the breweries are")
     if pl_display:
@@ -57,8 +75,12 @@ def run_the_data():
         fig = go.Figure(data=[go.Pie(labels=labels, values=values)])
         st.plotly_chart(fig)
 
-    hist_data = [stats_df['avg_score'], stats_df['taste_avg'].dropna() , stats_df['look_avg'].dropna(), stats_df['smell_avg'].dropna(), stats_df['feel_avg'].dropna()]
-    groups = ['Overall', 'Taste', 'Look', 'Smell', 'Feel']
+    lda_display = st.checkbox("Look at the topic modelling.")
+    if lda_display:
+        st.markdown("Click [here](file:///Users/sarah/Documents/DataScience/final_project/beer_recommender/lda_vis.html) to check out the interactive graph!", unsafe_allow_html=True)
+        
+    #hist_data = [stats_df['avg_score'], stats_df['taste_avg'].dropna() , stats_df['look_avg'].dropna(), stats_df['smell_avg'].dropna(), stats_df['feel_avg'].dropna()]
+    #groups = ['Overall', 'Taste', 'Look', 'Smell', 'Feel']
 
     #fig = ff.create_distplot(hist_data, groups, bin_size=[20, 15, 15, 15, 15])
     
@@ -93,12 +115,7 @@ def run_the_app():
     #if filter_by == 'Yes':
     #    beer_location = st.selectbox('Choose a location:', sm_df_full['location'].unique()) 
 
-    
-    #textinput:
-    #desired_beer = st.text_input("Type a beer in here","Bourbon County Brand Stout")
-    #if st.button("Lets Go!"):
-       # desired_beer = desired_beer
-    
+  
     chosen_brewery = st.selectbox('Choose a brewery:', sm_df_full['brewery'].unique().tolist())
     
     #dropdown:
@@ -169,6 +186,8 @@ def run_the_app():
                 rec_beer_dict['Location'] = sm_df_full.loc[full_ind]['location']
                 rec_beer_dict['Rating'] = sm_df_full.loc[full_ind]['avg_score']
                 rec_beer_dict['url'] = sm_df_full.loc[full_ind]['url']
+                rec_beer_dict['abv'] = sm_df_full.loc[full_ind]['abv']
+                rec_beer_dict['avail'] = sm_df_full.loc[full_ind]['avail']
                 #if not sm_df_full.loc[full_ind]['img'] == None:
                 rec_beer_dict['Image'] = sm_df_full.loc[full_ind]['img']
                 #else:
@@ -181,7 +200,10 @@ def run_the_app():
                 img_url = recommended_beers[i]['Image']
                 load_image(img_url)
                 st.write(f"{recommended_beers[i]['Beer']} from {recommended_beers[i]['Brewery']} in {recommended_beers[i]['Location']}")
-                st.write(f"It has a rating of {recommended_beers[i]['Rating']}")
+                st.write("The stats:")
+                st.write(f"Rating: {recommended_beers[i]['Rating']}")
+                st.write(f"ABV: {recommended_beers[i]['abv']}")
+                st.write(f"Availability: {recommended_beers[i]['avail']}")
                 st.markdown(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
             
             #return recommended_beers[:3]
@@ -205,7 +227,10 @@ def run_the_app():
                     img_url = recommended_beers[i]['Image']
                     load_image(img_url)
                     st.write(f"{recommended_beers[i]['Beer']} from {recommended_beers[i]['Brewery']} in {recommended_beers[i]['Location']}")
-                    st.write(f"It has a rating of {recommended_beers[i]['Rating']}")
+                    st.write("The stats:")
+                    st.write(f"Rating: {recommended_beers[i]['Rating']}")
+                    st.write(f"ABV: {recommended_beers[i]['abv']}")
+                    st.write(f"Availability: {recommended_beers[i]['avail']}")
                     st.markdown(f"[Click here]({recommended_beers[i]['url']}) to check out the reviews!")
             else:
                 st.write("Sorry, there are no similar high rated beers in that country")
