@@ -13,23 +13,27 @@ import seaborn as sns
 import pyLDAvis.gensim
 
 def main():
-    st.title("Hello Beer World")
-    st.markdown("Welcome to my beer recommender - simply choose a beer you know you like, and it will give you 3 others that you will enjoy!")
+    #st.title("Hello Beer World")
+    #st.markdown("Welcome to my beer recommender - simply choose a beer you know you like, and it will give you 3 others that you will enjoy!")
     
     st.sidebar.title("What do you want to do?")
     app_mode = st.sidebar.selectbox("Choose the mode", ["Look at the data", "Find Your Beer's Peer"])
 
     if app_mode == "Look at the data":
+        st.title("Get a feel for the data")
+        st.markdown("Choose below to see some insights into the data.")
         with st.spinner('Gathering the data...'):
             run_the_data()
 
     elif app_mode == "Find Your Beer's Peer":
+        st.title("Find your beer's peer")
+        st.markdown("Below you can choose from over 40,000 of the top rated beers, and it will return the beers that are the most similar based on the description of the beers.")
         with st.spinner("Fermenting the beers..."):
             run_the_app()
 
 
 def run_the_data():
-    st.subheader('The data at a glance')
+    st.subheader('The data at a glance:')
 
     @st.cache
     def load_full_data(desti):
@@ -38,8 +42,17 @@ def run_the_data():
 
     sm_df_full = load_full_data('data_files/top_top_beers.csv')
     stats_df = load_full_data('data_files/stats_df.csv')
-
+    
+    st.write("209,508 Unique beers.")
+    st.write("7,019,687 Reviews.")
+    st.write("118,190 Breweries.")
+    st.write("111 Beer Styles.")
+    st.write("---")
+    st.subheader("Here is a sample of the data:")
     st.dataframe(sm_df_full.sample(10))
+    stats_vis = st.checkbox("Look at the descriptive statistics")
+    if stats_vis:
+        st.dataframe(stats_df.describe())
 
     
     plt.style.use('seaborn')
@@ -85,9 +98,10 @@ def run_the_data():
     #fig = ff.create_distplot(hist_data, groups, bin_size=[20, 15, 15, 15, 15])
     
     #st.plotly_chart(fig)
-
-    st.write("Here is a visualization of the 12 topics in the beer reviews:")
-    st.image(['images/topic_0.png','images/topic_1.png','images/topic_2.png','images/topic_3.png','images/topic_4.png','images/topic_5.png','images/topic_6.png','images/topic_7.png','images/topic_8.png','images/topic_9.png','images/topic_10.png','images/topic_11.png'])
+    viz_disp = st.checkbox("Look at the topics in the beer reviews")
+    if viz_disp:
+        st.write("These are the words most commonly used in each of the 12 topics:")
+        st.image(['images/topic_0.png','images/topic_1.png','images/topic_2.png','images/topic_3.png','images/topic_4.png','images/topic_5.png','images/topic_6.png','images/topic_7.png','images/topic_8.png','images/topic_9.png','images/topic_10.png','images/topic_11.png'])
 
 
 
