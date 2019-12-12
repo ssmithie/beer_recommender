@@ -33,15 +33,26 @@ As part of the data exploration, one of the more interesting things I found was 
 
 ### Topic Modelling
 As part of the EDA, I did LDA topic modelling using NLP and bag of words. Here is a visualization of the most common words in 6 of the 12 topics:
-![topics]()
+![topics](images/topics.png)
 And a look at the LDA visualization:
-![lda_vis]()
+![lda_vis](images/lda_vis.png)
 
 ## Recommender Model <a name='model'></a>
+The recommender was built using NLP to tokenize, remove stopwords and lemmatize the reviews of each of the beers.
+I then used a count vectorizer and cosine simliarity to build a similarity matrix. 
 
 ## Final Recommendation System <a name='sys'></a>
+For the final recommender, the user inputs a beer that they like and will get the 3 most similar beers based on the description. The user can also filter by location, giving only beers in that location.
+I built a front-end using streamlit - here is a look at how it works:
+![first](images/app1.png)
+![second](images/app2.png)
+![third](images/app3.png)
+### Or, filtering by location:
+![fourth](images/app4.png)
+![fifth](images/app5.png)
 
 ## Further Steps <a name='steps'></a>
+- Put app live online
 - Add functionality to take in descriptors as user input.
 - Add business functionality:
   - Allow breweries to have just their own beers for users to choose from, after inputting either an old beer of the brewery or another common beer.
